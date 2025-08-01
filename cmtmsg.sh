@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -e
 
+# --- Parse command line arguments ---
+AUTO_CONFIRM=false
+if [[ "$1" == "--confirm" ]]; then
+  AUTO_CONFIRM=true
+  echo "🚀 Auto-confirm mode enabled"
+fi
+
 # --- Resolve true script path even when symlinked ---
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do
@@ -82,14 +89,26 @@ echo -e "\n💬 Commit message:"
 echo "$STRIPPED_MSG"
 
 # --- Confirm commit ---
-read -r -p "🟢 Commit with this message? (y/N) " CONFIRM
+if [ "$AUTO_CONFIRM" = true ]; then
+  echo "🟢 Auto-confirming commit..."
+  CONFIRM="y"
+else
+  read -r -p "🟢 Commit with this message? (y/N) " CONFIRM
+fi
+
 if [[ "$CONFIRM" =~ ^[Yy]$ ]]; then
   git add .
   git commit -m "$STRIPPED_MSG"
   BRANCH=$(git rev-parse --abbrev-ref HEAD)
   echo "✅ Committed to $BRANCH"
 
-  read -r -p "📤 Push to origin/$BRANCH? (y/N) " PUSH_CONFIRM
+  if [ "$AUTO_CONFIRM" = true ]; then
+    echo "📤 Auto-confirming push..."
+    PUSH_CONFIRM="y"
+  else
+    read -r -p "📤 Push to origin/$BRANCH? (y/N) " PUSH_CONFIRM
+  fi
+
   if [[ "$PUSH_CONFIRM" =~ ^[Yy]$ ]]; then
     git push origin "$BRANCH"
     echo "✅ Changes pushed to origin/$BRANCH"
