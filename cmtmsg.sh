@@ -162,15 +162,15 @@ if [[ "$CONFIRM" =~ ^[Yy]$ ]]; then
     print_status "SKIP" "Push cancelled"
   fi
 
-  # ASCII sunflower
+  # ASCII art celebration
   echo ""
-  echo -e "${YELLOW}    .-\"\"\"-.${NC}"
-  echo -e "${YELLOW}   /       \\${NC}"
-  echo -e "${YELLOW}  |  ${BRIGHT_GREEN}o   o${NC}${YELLOW}  |${NC}"
-  echo -e "${YELLOW}   \\   ${BRIGHT_GREEN}^${NC}${YELLOW}   /${NC}"
-  echo -e "${YELLOW}    \`-...-'${NC}"
-  echo -e "${GREEN}      |${NC}"
-  echo -e "${GREEN}      |${NC}"
+  echo -e "${YELLOW}   \\ | /${NC}"
+  echo -e "${YELLOW}  -- ${BRIGHT_GREEN}@${NC}${YELLOW} --${NC}"
+  echo -e "${YELLOW}   / | \\${NC}"
+  echo -e "${GREEN}     |${NC}"
+  echo -e "${GREEN}     |${NC}"
+  echo -e "${BRIGHT_GREEN}   POWER${NC}"
+  echo -e "${BRIGHT_GREEN}    UP!${NC}"
 
 else
   print_status "SKIP" "Commit cancelled"
