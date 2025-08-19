@@ -4,6 +4,39 @@ _Zero-effort, AI-generated commit messages. Powered by OpenAI._
 
 ---
 
+## Output Example
+
+```bash
+➜  cmtmsg-tool git:(main) ✗ cmtmsg
+[CONFIG] .env loaded from /Users/ataxali/dev/cmtmsg-tool/.env
+[AUTH] OPEN_AI_KEY starts with: sk-proj-...
+[MODEL] Using model: gpt-4o
+
+[SCAN] Collecting working tree changes
+
+[PROC] Transmitting to OpenAI API... COMPLETE
+
+[OUTPUT] Generated commit message:
+
+  chore(cmtmsg): update ASCII art to celebration
+  Replaced sunflower ASCII art with a celebration motif to enhance script output.
+
+
+[CONFIRM] Commit with this message? (y/N) y
+[COMMIT] Committed to main
+[PUSH] Push to origin/main? (y/N) y
+[PUSH] Changes pushed to origin/main
+
+   \ | /
+  -- @ --
+   / | \033[0m
+     |
+     |
+   POWER
+    UP!
+➜  cmtmsg-tool git:(main) 
+```
+
 ## 🤔 Why
 
 Stop writing commit messages.  
