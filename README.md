@@ -1,83 +1,90 @@
-# cmtmsg-tool
+# 🧠 cmtmsg-tool
 
-AI-powered Conventional Commit Message Assistant.
+_Zero-effort, AI-generated commit messages. Powered by OpenAI._
 
-## 📖 Overview
+---
 
-**cmtmsg-tool** is a command-line utility that uses OpenAI's GPT models to automatically generate
-high-quality [Conventional Commit](https://www.conventionalcommits.org/en/v1.0.0/) messages based on the current Git
-diff in your working directory. It helps developers write clean and consistent commit messages with minimal effort.
+## 🤔 Why
 
-## ✨ Features
+Stop writing commit messages.  
+Let your code **explain itself**.
 
-- 💬 Generates meaningful commit messages using OpenAI models
-- 💡 Follows the Conventional Commits specification
-- 📄 Parses your current staged and unstaged changes (via `git diff`)
-- ⚙️ Supports `.env` file for API key and model configuration
-- ✅ Optional interactive or auto-confirm commit/push workflow
+---
+
+## ⚡️ What It Does
+
+- Parses your working `git diff`
+- Sends it to OpenAI's GPT (configurable model)
+- Returns a Conventional Commit message
+- Optionally commits and pushes it — fully hands-free
+
+---
 
 ## 🚀 Quick Start
 
-1. Clone the repository:
+```bash
+# clone your fork
+git clone https://github.com/oldmill1/cmtmsg.git
+cd cmtmsg
 
-   ```bash
-   git clone https://github.com/oldmill1/cmtmsg.git
-   cd cmtmsg
-   ```
+# add your OpenAI API key
+cp .env.example .env
+```
 
-2. Create a `.env` file in the root of the project:
+`.env` file contents:
 
-   ```
-   OPEN_AI_KEY=your_openai_api_key_here
-   MODEL=gpt-4o
-   ```
+```dotenv
+OPEN_AI_KEY=sk-xxx
+MODEL=gpt-4o
+```
 
-3. Make some code changes in your Git repo.
+Make changes to your repo, then run:
 
-4. Run the tool:
+```bash
+./cmtmsg.sh          # interactively review
+./cmtmsg.sh --confirm  # fire-and-forget mode
+```
 
-   ```bash
-   ./cmtmsg.sh
-   ```
+---
 
-   Or to auto-confirm commit and push:
-
-   ```bash
-   ./cmtmsg.sh --confirm
-   ```
-
-## ⚙️ Configuration
-
-| Variable      | Description                      | Example  |
-|---------------|----------------------------------|----------|
-| `OPEN_AI_KEY` | Your OpenAI API key              | `sk-...` |
-| `MODEL`       | The model name to use (optional) | `gpt-4o` |
-
-The `.env` file must be located in the same directory as the script.
-
-## 🛠 Dependencies
-
-Ensure the following tools are installed:
+## ✅ Requirements
 
 - `git`
 - `bash`
 - `curl`
 - [`jq`](https://stedolan.github.io/jq/)
-- Access to OpenAI’s [Chat Completions API](https://platform.openai.com/docs/guides/gpt)
+- OpenAI API key
+
+---
+
+## ⚙️ Config Options (`.env`)
+
+| Key           | Purpose                   | Default  |
+|---------------|---------------------------|----------|
+| `OPEN_AI_KEY` | Your OpenAI API key       | —        |
+| `MODEL`       | GPT model for description | `gpt-4o` |
+
+---
 
 ## 🧪 Example Output
 
-```
+```txt
 💬 Commit message:
+
 feat(cli): add OpenAI-powered commit message generation
 
 Uses current Git diff and generates meaningful Conventional Commits.
 ```
 
+---
+
 ## 📦 License
 
-MIT © [oldmill1](https://github.com/oldmill1)
+MIT © [@oldmill1](https://github.com/oldmill1)
 
-## 🙌 Contributions
+---
 
-Feel free to open issues, suggest features, or submit pull requests!
+## 👋 Contributing
+
+Pull requests, issues, and ideas are welcome.  
+This is built to be simple — let's keep it that way.
