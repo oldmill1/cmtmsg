@@ -1,0 +1,18 @@
+# Site settings
+title: cmtmsg-tool
+description: Zero-effort, AI-generated commit messages. Powered by OpenAI.
+
+# Jekyll theme - perfect for your retro terminal aesthetic
+theme: jekyll-theme-hacker
+
+# GitHub Pages configuration
+url: "https://oldmill1.github.io"
+baseurl: "/cmtmsg"
+
+# Markdown processor
+markdown: kramdown
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
