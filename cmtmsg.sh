@@ -142,8 +142,8 @@ else
 fi
 
 if [[ "$CONFIRM" =~ ^[Yy]$ ]]; then
-  git add .
-  git commit -m "$STRIPPED_MSG"
+  git add . 2>/dev/null
+  git commit -m "$STRIPPED_MSG" --quiet
   BRANCH=$(git rev-parse --abbrev-ref HEAD)
   print_highlight "COMMIT" "Committed to $BRANCH"
 
@@ -156,7 +156,7 @@ if [[ "$CONFIRM" =~ ^[Yy]$ ]]; then
   fi
 
   if [[ "$PUSH_CONFIRM" =~ ^[Yy]$ ]]; then
-    git push origin "$BRANCH"
+    git push origin "$BRANCH" --quiet
     print_highlight "PUSH" "Changes pushed to origin/$BRANCH"
   else
     print_status "SKIP" "Push cancelled"
