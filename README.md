@@ -1,83 +1,83 @@
-### 📝 `README.md`
+# cmtmsg-tool
 
-```markdown
-```
+AI-powered Conventional Commit Message Assistant.
 
-   ____ ___  __  __ _______ __  __ ____   ____ _______     __
-/ ___/ _ \| \/ |__   __| \/ | _ \ / __ \__   __| / /
-| | | | | | \ / | | | | \ / | |_) | | | | | | / /
-| |__| |_| | |\/| | | | | |\/| |  __/| |__| | | | / /  
-\____\___/|_| |_| |_| |_| |_|_| \____/ |_| /_/
+## 📖 Overview
 
--------------------------------------------------------------
-🚀 AI-Powered Conventional Commit Message Assistant
+**cmtmsg-tool** is a command-line utility that uses OpenAI's GPT models to automatically generate
+high-quality [Conventional Commit](https://www.conventionalcommits.org/en/v1.0.0/) messages based on the current Git
+diff in your working directory. It helps developers write clean and consistent commit messages with minimal effort.
 
-     AUTHOR  : oldmill1
-     TOOL    : cmtmsg-tool
-     VERSION : v1.0.0
-     LICENSE : MIT
-     URL     : https://github.com/oldmill1/cmtmsg
+## ✨ Features
 
--------------------------------------------------------------
+- 💬 Generates meaningful commit messages using OpenAI models
+- 💡 Follows the Conventional Commits specification
+- 📄 Parses your current staged and unstaged changes (via `git diff`)
+- ⚙️ Supports `.env` file for API key and model configuration
+- ✅ Optional interactive or auto-confirm commit/push workflow
 
-> > DESCRIPTION
-> > cmtmsg-tool is a command-line utility that auto-generates
-> > Conventional Commit messages using OpenAI's GPT model.
-> > Designed to enhance your git workflow with intelligent,
-> > consistent, and clean commit messages, every time.
+## 🚀 Quick Start
 
-> > FEATURES
+1. Clone the repository:
 
-- 🤖 GPT-powered commit message generation
-- ✍️ Follows Conventional Commits format
-- 🔍 Parses your current Git diff
-- ✅ .env-based secret config
-- 🆗 Auto-confirm commit & push
-- 🧵 Clean, minimal output
+   ```bash
+   git clone https://github.com/oldmill1/cmtmsg.git
+   cd cmtmsg
+   ```
 
-> > USAGE
+2. Create a `.env` file in the root of the project:
 
-$ ./cmtmsg.sh → Generate commit message interactively
-$ ./cmtmsg.sh --confirm → Automatically commit & push
+   ```
+   OPEN_AI_KEY=your_openai_api_key_here
+   MODEL=gpt-4o
+   ```
 
-Ensure you have a `.env` file in the same directory with:
-OPEN_AI_KEY=your-api-key-here
+3. Make some code changes in your Git repo.
 
-> > DEPENDENCIES
+4. Run the tool:
 
-- git
-- curl
-- jq
-- bash
-- OpenAI API access
+   ```bash
+   ./cmtmsg.sh
+   ```
 
-> > EXAMPLE
+   Or to auto-confirm commit and push:
 
-📥 Git diff found
-📡 Sending to GPT model...
-💬 Suggested message:
-feat(cli): add support for AI-generated commit messages
+   ```bash
+   ./cmtmsg.sh --confirm
+   ```
 
-> > INSTALL
+## ⚙️ Configuration
 
-$ git clone https://github.com/oldmill1/cmtmsg.git
-$ cd cmtmsg
-$ cp .env.example .env # Add your OpenAI key
-$ ./cmtmsg.sh
+| Variable      | Description                      | Example  |
+|---------------|----------------------------------|----------|
+| `OPEN_AI_KEY` | Your OpenAI API key              | `sk-...` |
+| `MODEL`       | The model name to use (optional) | `gpt-4o` |
 
-> > CONTRIBUTING
-> > Pull requests are welcome. For major changes,
-> > please open an issue first to discuss what you’d like to change.
+The `.env` file must be located in the same directory as the script.
 
-> > ⚠️ REMEMBER
-> > With great AI comes great responsibility.
-> > Review your commits before you push 🚀
+## 🛠 Dependencies
 
--------------------------------------------------------------
+Ensure the following tools are installed:
 
-      [ SYSTEM READY ] :: PRESS ENTER TO COMMIT 🤘
+- `git`
+- `bash`
+- `curl`
+- [`jq`](https://stedolan.github.io/jq/)
+- Access to OpenAI’s [Chat Completions API](https://platform.openai.com/docs/guides/gpt)
 
--------------------------------------------------------------
+## 🧪 Example Output
 
 ```
+💬 Commit message:
+feat(cli): add OpenAI-powered commit message generation
+
+Uses current Git diff and generates meaningful Conventional Commits.
 ```
+
+## 📦 License
+
+MIT © [oldmill1](https://github.com/oldmill1)
+
+## 🙌 Contributions
+
+Feel free to open issues, suggest features, or submit pull requests!
