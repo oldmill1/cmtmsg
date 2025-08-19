@@ -121,17 +121,15 @@ fi
 
 # --- Show result ---
 echo ""
-echo -e "${CYAN}┌─────────────────────────────────────────────────────────────────┐${NC}"
-echo -e "${CYAN}│${NC} ${YELLOW}GENERATED COMMIT MESSAGE${NC}                                     ${CYAN}│${NC}"
-echo -e "${CYAN}├─────────────────────────────────────────────────────────────────┤${NC}"
-echo -e "${CYAN}│${NC} ${BRIGHT_GREEN}$STRIPPED_MSG${NC}"
-# Add padding for multi-line messages
+print_highlight "OUTPUT" "Generated commit message:"
+echo ""
+# Display each line of the message with simple indentation
 while IFS= read -r line; do
-  if [ ! -z "$line" ] && [ "$line" != "$STRIPPED_MSG" ]; then
-    echo -e "${CYAN}│${NC} ${GREEN}$line${NC}"
+  if [ ! -z "$line" ]; then
+    echo -e "  ${BRIGHT_GREEN}$line${NC}"
   fi
 done <<< "$STRIPPED_MSG"
-echo -e "${CYAN}└─────────────────────────────────────────────────────────────────┘${NC}"
+echo ""
 
 # --- Confirm commit ---
 echo ""
