@@ -35,10 +35,37 @@ print_progress() {
 
 # --- Parse command line arguments ---
 AUTO_CONFIRM=false
-if [[ "$1" == "--confirm" ]]; then
-  AUTO_CONFIRM=true
-  print_status "INIT" "Auto-confirm mode enabled"
-fi
+UPSTREAM_NAME="origin"
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --confirm)
+      AUTO_CONFIRM=true
+      print_status "INIT" "Auto-confirm mode enabled"
+      shift
+      ;;
+    --upstream-name=*)
+      UPSTREAM_NAME="${1#*=}"
+      print_status "INIT" "Upstream name set to: $UPSTREAM_NAME"
+      shift
+      ;;
+    --upstream-name)
+      if [[ -n $2 && $2 != -* ]]; then
+        UPSTREAM_NAME="$2"
+        print_status "INIT" "Upstream name set to: $UPSTREAM_NAME"
+        shift 2
+      else
+        print_error "--upstream-name requires a value"
+        exit 1
+      fi
+      ;;
+    *)
+      print_error "Unknown option: $1"
+      echo "Usage: $0 [--confirm] [--upstream-name=<name>] [--upstream-name <name>]"
+      exit 1
+      ;;
+  esac
+done
 
 # --- Resolve true script path even when symlinked ---
 SOURCE="${BASH_SOURCE[0]}"
@@ -151,13 +178,13 @@ if [[ "$CONFIRM" =~ ^[Yy]$ ]]; then
     print_status "AUTO" "Auto-confirming push"
     PUSH_CONFIRM="y"
   else
-    echo -ne "${GREEN}[PUSH]${NC} Push to origin/$BRANCH? ${DIM_GREEN}(y/N)${NC} "
+    echo -ne "${GREEN}[PUSH]${NC} Push to $UPSTREAM_NAME/$BRANCH? ${DIM_GREEN}(y/N)${NC} "
     read -r PUSH_CONFIRM
   fi
 
   if [[ "$PUSH_CONFIRM" =~ ^[Yy]$ ]]; then
-    git push origin "$BRANCH" --quiet
-    print_highlight "PUSH" "Changes pushed to origin/$BRANCH"
+    git push "$UPSTREAM_NAME" "$BRANCH" --quiet
+    print_highlight "PUSH" "Changes pushed to $UPSTREAM_NAME/$BRANCH"
   else
     print_status "SKIP" "Push cancelled"
   fi
