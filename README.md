@@ -1,123 +1,70 @@
-# 🧠 cmtmsg-tool
+# CMTMSG(1)
 
-_Zero-effort, AI-generated commit messages. Powered by OpenAI._
+## NAME
 
----
+**cmtmsg** - AI-powered git commit message generator
 
-## Output Example
+## SYNOPSIS
 
-```bash
-➜  cmtmsg-tool git:(main) ✗ cmtmsg
-[CONFIG] .env loaded from /Users/ataxali/dev/cmtmsg-tool/.env
-[AUTH] OPEN_AI_KEY starts with: sk-proj-...
-[MODEL] Using model: gpt-4o
+**cmtmsg** [**--confirm**] [**--upstream-name**=*NAME*]
 
-[SCAN] Collecting working tree changes
+## DESCRIPTION
 
-[PROC] Transmitting to OpenAI API... COMPLETE
+**cmtmsg** generates conventional commit messages using OpenAI's API based on your git working tree changes. It analyzes the diff and creates properly formatted commit messages following the Conventional Commits specification.
 
-[OUTPUT] Generated commit message:
+The script requires a `.env` file in the same directory containing your OpenAI API key as `OPEN_AI_KEY`.
 
-  chore(cmtmsg): update ASCII art to celebration
-  Replaced sunflower ASCII art with a celebration motif to enhance script output.
+## OPTIONS
 
+**--confirm**
+: Skip confirmation prompts and automatically commit and push changes
 
-[CONFIRM] Commit with this message? (y/N) y
-[COMMIT] Committed to main
-[PUSH] Push to origin/main? (y/N) y
-[PUSH] Changes pushed to origin/main
+**--upstream-name**=*NAME*
+: Specify the upstream remote name (default: origin)
 
-   \ | /
-  -- @ --
-   / | \033[0m
-     |
-     |
-   POWER
-    UP!
-➜  cmtmsg-tool git:(main) 
+**--upstream-name** *NAME*
+: Alternative syntax for specifying upstream remote name
+
+## FILES
+
+**.env**
+: Configuration file containing `OPEN_AI_KEY` and optional `MODEL` variables
+
+## ENVIRONMENT
+
+**OPEN_AI_KEY**
+: OpenAI API key (loaded from .env file)
+
+**MODEL**
+: OpenAI model to use (default: gpt-4o, loaded from .env file)
+
+## EXAMPLES
+
+Generate commit message with prompts:
+```
+cmtmsg
 ```
 
-## 🤔 Why
-
-Stop writing commit messages.  
-Let your code **explain itself**.
-
----
-
-## ⚡️ What It Does
-
-- Parses your working `git diff`
-- Sends it to OpenAI's GPT (configurable model)
-- Returns a Conventional Commit message
-- Optionally commits and pushes it — fully hands-free
-
----
-
-## 🚀 Quick Start
-
-```bash
-# clone your fork
-git clone https://github.com/oldmill1/cmtmsg.git
-cd cmtmsg
-
-# add your OpenAI API key
-cp .env.example .env
+Auto-commit and push to origin:
+```
+cmtmsg --confirm
 ```
 
-`.env` file contents:
-
-```dotenv
-OPEN_AI_KEY=sk-xxx
-MODEL=gpt-4o
+Use custom upstream remote:
+```
+cmtmsg --upstream-name=upstream
 ```
 
-Make changes to your repo, then run:
-
-```bash
-./cmtmsg.sh          # interactively review
-./cmtmsg.sh --confirm  # fire-and-forget mode
+Auto-commit with custom remote:
+```
+cmtmsg --confirm --upstream-name=fork
 ```
 
----
+## EXIT STATUS
 
-## ✅ Requirements
+**0** - Success or no changes detected  
+**1** - Error (missing .env, API failure, invalid arguments)
 
-- `git`
-- `bash`
-- `curl`
-- [`jq`](https://stedolan.github.io/jq/)
-- OpenAI API key
+## AUTHOR
 
----
-
-## ⚙️ Config Options (`.env`)
-
-| Key           | Purpose                   | Default  |
-|---------------|---------------------------|----------|
-| `OPEN_AI_KEY` | Your OpenAI API key       | —        |
-| `MODEL`       | GPT model for description | `gpt-4o` |
-
----
-
-## 🧪 Example Output
-
-```txt
-💬 Commit message:
-
-feat(cli): add OpenAI-powered commit message generation
-
-Uses current Git diff and generates meaningful Conventional Commits.
-```
-
----
-
-## 📦 License
-
-MIT © [@oldmill1](https://github.com/oldmill1)
-
----
-
-## 👋 Contributing
-
-Pull requests, issues, and ideas are welcome.  
-This is built to be simple — let's keep it that way.
+Generated commit messages follow the Conventional Commits format with type, scope, and description.
