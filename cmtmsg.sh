@@ -97,7 +97,10 @@ print_status "MODEL" "Using model: $MODEL"
 # --- Generate working diff ---
 echo ""
 print_status "SCAN" "Collecting working tree changes"
-git add -N . > /dev/null
+
+# Add untracked files for diff generation, but handle ignored files gracefully
+git add -N . 2>/dev/null || true
+
 DIFF_CONTENT=$(git diff HEAD)
 
 if [ -z "$DIFF_CONTENT" ]; then
