@@ -33,6 +33,36 @@ print_progress() {
   echo -e " ${GREEN}COMPLETE${NC}"
 }
 
+# --- Animation Functions ---
+show_progress_bar() {
+  local total_steps="$1"
+  local current_step="$2"
+  local width=50
+  local filled=$((current_step * width / total_steps))
+  local empty=$((width - filled))
+  
+  printf "\r${CYAN}[PROGRESS]${NC} ["
+  printf "%*s" $filled | tr ' ' '█'
+  printf "%*s" $empty | tr ' ' '░'
+  printf "] %d%% (%d/%d)" $((current_step * 100 / total_steps)) $current_step $total_steps
+}
+
+flash_message() {
+  local tag="$1"
+  local message="$2"
+  local duration="${3:-1.5}"
+  
+  # Clear the line and show message
+  printf "\r\033[K${GREEN}[${tag}]${NC} ${message}\n"
+  sleep "$duration"
+  # Clear the line
+  printf "\033[1A\033[K"
+}
+
+clear_screen() {
+  printf "\033[2J\033[H"
+}
+
 # --- Parse command line arguments ---
 AUTO_CONFIRM=false
 UPSTREAM_NAME="origin"
@@ -41,18 +71,18 @@ while [[ $# -gt 0 ]]; do
   case $1 in
     --confirm)
       AUTO_CONFIRM=true
-      print_status "INIT" "Auto-confirm mode enabled"
+      flash_message "INIT" "Auto-confirm mode enabled"
       shift
       ;;
     --upstream-name=*)
       UPSTREAM_NAME="${1#*=}"
-      print_status "INIT" "Upstream name set to: $UPSTREAM_NAME"
+      flash_message "INIT" "Upstream name set to: $UPSTREAM_NAME"
       shift
       ;;
     --upstream-name)
       if [[ -n $2 && $2 != -* ]]; then
         UPSTREAM_NAME="$2"
-        print_status "INIT" "Upstream name set to: $UPSTREAM_NAME"
+        flash_message "INIT" "Upstream name set to: $UPSTREAM_NAME"
         shift 2
       else
         print_error "--upstream-name requires a value"
@@ -76,13 +106,22 @@ while [ -h "$SOURCE" ]; do
 done
 SCRIPT_DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
 
+# --- Initialize progress tracking ---
+TOTAL_STEPS=8
+CURRENT_STEP=0
+
+# Show initial progress bar
+show_progress_bar $TOTAL_STEPS $CURRENT_STEP
+
 # --- Load .env and override any shell exports ---
 unset OPENAI_API_KEY
 unset API_KEY
 
 if [ -f "$SCRIPT_DIR/.env" ]; then
   source "$SCRIPT_DIR/.env"
-  print_status "CONFIG" ".env loaded from $SCRIPT_DIR/.env"
+  CURRENT_STEP=$((CURRENT_STEP + 1))
+  show_progress_bar $TOTAL_STEPS $CURRENT_STEP
+  flash_message "CONFIG" ".env loaded from $SCRIPT_DIR/.env"
 else
   print_error ".env file not found in $SCRIPT_DIR"
   exit 1
@@ -91,12 +130,18 @@ fi
 API_KEY="$OPEN_AI_KEY"
 MODEL="${MODEL:-gpt-4o}"
 
-print_status "AUTH" "OPEN_AI_KEY starts with: ${API_KEY:0:8}..."
-print_status "MODEL" "Using model: $MODEL"
+CURRENT_STEP=$((CURRENT_STEP + 1))
+show_progress_bar $TOTAL_STEPS $CURRENT_STEP
+flash_message "AUTH" "OPEN_AI_KEY starts with: ${API_KEY:0:8}..."
+
+CURRENT_STEP=$((CURRENT_STEP + 1))
+show_progress_bar $TOTAL_STEPS $CURRENT_STEP
+flash_message "MODEL" "Using model: $MODEL"
 
 # --- Generate working diff ---
-echo ""
-print_status "SCAN" "Collecting working tree changes"
+CURRENT_STEP=$((CURRENT_STEP + 1))
+show_progress_bar $TOTAL_STEPS $CURRENT_STEP
+flash_message "SCAN" "Collecting working tree changes"
 
 # Add untracked files for diff generation, but handle ignored files gracefully
 git add -N . 2>/dev/null || true
@@ -131,8 +176,9 @@ REQUEST_JSON=$(jq -n \
   }')
 
 # --- Call OpenAI API ---
-echo ""
-print_progress "Transmitting to OpenAI API"
+CURRENT_STEP=$((CURRENT_STEP + 1))
+show_progress_bar $TOTAL_STEPS $CURRENT_STEP
+flash_message "PROC" "Transmitting to OpenAI API..." 2.0
 
 RESPONSE=$(curl -s https://api.openai.com/v1/chat/completions \
   -H "Authorization: Bearer $API_KEY" \
@@ -150,9 +196,10 @@ if [ -z "$STRIPPED_MSG" ]; then
 fi
 
 # --- Show result ---
-echo ""
-print_highlight "OUTPUT" "Generated commit message:"
-echo ""
+CURRENT_STEP=$((CURRENT_STEP + 1))
+show_progress_bar $TOTAL_STEPS $CURRENT_STEP
+flash_message "OUTPUT" "Generated commit message:" 2.0
+
 # Display each line of the message with simple indentation
 while IFS= read -r line; do
   if [ ! -z "$line" ]; then
@@ -162,9 +209,10 @@ done <<< "$STRIPPED_MSG"
 echo ""
 
 # --- Confirm commit ---
-echo ""
 if [ "$AUTO_CONFIRM" = true ]; then
-  print_status "AUTO" "Auto-confirming commit"
+  CURRENT_STEP=$((CURRENT_STEP + 1))
+  show_progress_bar $TOTAL_STEPS $CURRENT_STEP
+  flash_message "AUTO" "Auto-confirming commit"
   CONFIRM="y"
 else
   echo -ne "${GREEN}[CONFIRM]${NC} Commit with this message? ${DIM_GREEN}(y/N)${NC} "
@@ -175,10 +223,14 @@ if [[ "$CONFIRM" =~ ^[Yy]$ ]]; then
   git add . 2>/dev/null
   git commit -m "$STRIPPED_MSG" --quiet
   BRANCH=$(git rev-parse --abbrev-ref HEAD)
-  print_highlight "COMMIT" "Committed to $BRANCH"
+  CURRENT_STEP=$((CURRENT_STEP + 1))
+  show_progress_bar $TOTAL_STEPS $CURRENT_STEP
+  flash_message "COMMIT" "Committed to $BRANCH"
 
   if [ "$AUTO_CONFIRM" = true ]; then
-    print_status "AUTO" "Auto-confirming push"
+    CURRENT_STEP=$((CURRENT_STEP + 1))
+    show_progress_bar $TOTAL_STEPS $CURRENT_STEP
+    flash_message "AUTO" "Auto-confirming push"
     PUSH_CONFIRM="y"
   else
     echo -ne "${GREEN}[PUSH]${NC} Push to $UPSTREAM_NAME/$BRANCH? ${DIM_GREEN}(y/N)${NC} "
@@ -187,12 +239,17 @@ if [[ "$CONFIRM" =~ ^[Yy]$ ]]; then
 
   if [[ "$PUSH_CONFIRM" =~ ^[Yy]$ ]]; then
     git push "$UPSTREAM_NAME" "$BRANCH" --quiet
-    print_highlight "PUSH" "Changes pushed to $UPSTREAM_NAME/$BRANCH"
+    CURRENT_STEP=$((CURRENT_STEP + 1))
+    show_progress_bar $TOTAL_STEPS $CURRENT_STEP
+    flash_message "PUSH" "Changes pushed to $UPSTREAM_NAME/$BRANCH"
   else
-    print_status "SKIP" "Push cancelled"
+    flash_message "SKIP" "Push cancelled"
   fi
 
-  # ASCII art celebration
+  # Complete progress bar and clear screen for celebration
+  show_progress_bar $TOTAL_STEPS $TOTAL_STEPS
+  sleep 1
+  clear_screen
   echo ""
   echo -e "${YELLOW}   \\ | /${NC}"
   echo -e "${YELLOW}  -- ${BRIGHT_GREEN}@${NC}${YELLOW} --${NC}"
@@ -203,5 +260,5 @@ if [[ "$CONFIRM" =~ ^[Yy]$ ]]; then
   echo -e "${BRIGHT_GREEN}    UP!${NC}"
 
 else
-  print_status "SKIP" "Commit cancelled"
+  flash_message "SKIP" "Commit cancelled"
 fi
