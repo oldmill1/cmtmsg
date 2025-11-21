@@ -106,8 +106,10 @@ unset API_KEY
 
 if [ -f "$SCRIPT_DIR/.env" ]; then
   source "$SCRIPT_DIR/.env"
-  CURRENT_STEP=$((CURRENT_STEP + 1))
-  show_progress_bar $TOTAL_STEPS $CURRENT_STEP "Loading config"
+  if [ "$AUTO_CONFIRM" != true ]; then
+    CURRENT_STEP=$((CURRENT_STEP + 1))
+    show_progress_bar $TOTAL_STEPS $CURRENT_STEP "Loading config"
+  fi
 else
   print_error ".env file not found in $SCRIPT_DIR"
   exit 1
@@ -116,15 +118,21 @@ fi
 API_KEY="$OPEN_AI_KEY"
 MODEL="${MODEL:-gpt-4o}"
 
-CURRENT_STEP=$((CURRENT_STEP + 1))
-show_progress_bar $TOTAL_STEPS $CURRENT_STEP "Authenticating"
+if [ "$AUTO_CONFIRM" != true ]; then
+  CURRENT_STEP=$((CURRENT_STEP + 1))
+  show_progress_bar $TOTAL_STEPS $CURRENT_STEP "Authenticating"
+fi
 
-CURRENT_STEP=$((CURRENT_STEP + 1))
-show_progress_bar $TOTAL_STEPS $CURRENT_STEP "Initializing model"
+if [ "$AUTO_CONFIRM" != true ]; then
+  CURRENT_STEP=$((CURRENT_STEP + 1))
+  show_progress_bar $TOTAL_STEPS $CURRENT_STEP "Initializing model"
+fi
 
 # --- Generate working diff ---
-CURRENT_STEP=$((CURRENT_STEP + 1))
-show_progress_bar $TOTAL_STEPS $CURRENT_STEP "Scanning changes"
+if [ "$AUTO_CONFIRM" != true ]; then
+  CURRENT_STEP=$((CURRENT_STEP + 1))
+  show_progress_bar $TOTAL_STEPS $CURRENT_STEP "Scanning changes"
+fi
 
 # Add untracked files for diff generation, but handle ignored files gracefully
 git add -N . 2>/dev/null || true
@@ -159,8 +167,10 @@ REQUEST_JSON=$(jq -n \
   }')
 
 # --- Call OpenAI API ---
-CURRENT_STEP=$((CURRENT_STEP + 1))
-show_progress_bar $TOTAL_STEPS $CURRENT_STEP "Generating message"
+if [ "$AUTO_CONFIRM" != true ]; then
+  CURRENT_STEP=$((CURRENT_STEP + 1))
+  show_progress_bar $TOTAL_STEPS $CURRENT_STEP "Generating message"
+fi
 
 RESPONSE=$(curl -s https://api.openai.com/v1/chat/completions \
   -H "Authorization: Bearer $API_KEY" \
@@ -178,23 +188,30 @@ if [ -z "$STRIPPED_MSG" ]; then
 fi
 
 # --- Show result ---
-CURRENT_STEP=$((CURRENT_STEP + 1))
-show_progress_bar $TOTAL_STEPS $CURRENT_STEP "Processing output"
+if [ "$AUTO_CONFIRM" != true ]; then
+  CURRENT_STEP=$((CURRENT_STEP + 1))
+  show_progress_bar $TOTAL_STEPS $CURRENT_STEP "Processing output"
+fi
 
-# Display each line of the message with simple indentation
-while IFS= read -r line; do
-  if [ ! -z "$line" ]; then
-    echo -e "  ${BRIGHT_GREEN}$line${NC}"
-  fi
-done <<< "$STRIPPED_MSG"
-echo ""
+# For --confirm flag, only show the commit message without any formatting
+if [ "$AUTO_CONFIRM" = true ]; then
+  echo "$STRIPPED_MSG"
+else
+  # Display each line of the message with simple indentation for non-confirm mode
+  while IFS= read -r line; do
+    if [ ! -z "$line" ]; then
+      echo -e "  ${BRIGHT_GREEN}$line${NC}"
+    fi
+  done <<< "$STRIPPED_MSG"
+  echo ""
+fi
 
 # --- Confirm commit ---
 if [ "$AUTO_CONFIRM" = true ]; then
-  CURRENT_STEP=$((CURRENT_STEP + 1))
-  show_progress_bar $TOTAL_STEPS $CURRENT_STEP "Committing changes"
   CONFIRM="y"
 else
+  CURRENT_STEP=$((CURRENT_STEP + 1))
+  show_progress_bar $TOTAL_STEPS $CURRENT_STEP "Committing changes"
   echo -ne "${GREEN}[CONFIRM]${NC} Commit with this message? ${DIM_GREEN}(y/N)${NC} "
   read -r CONFIRM
 fi
@@ -203,8 +220,10 @@ if [[ "$CONFIRM" =~ ^[Yy]$ ]]; then
   git add . 2>/dev/null
   git commit -m "$STRIPPED_MSG" --quiet
   BRANCH=$(git rev-parse --abbrev-ref HEAD)
-  CURRENT_STEP=$((CURRENT_STEP + 1))
-  show_progress_bar $TOTAL_STEPS $CURRENT_STEP "Pushing to remote"
+  if [ "$AUTO_CONFIRM" != true ]; then
+    CURRENT_STEP=$((CURRENT_STEP + 1))
+    show_progress_bar $TOTAL_STEPS $CURRENT_STEP "Pushing to remote"
+  fi
 
   if [ "$AUTO_CONFIRM" = true ]; then
     PUSH_CONFIRM="y"
@@ -215,22 +234,26 @@ if [[ "$CONFIRM" =~ ^[Yy]$ ]]; then
 
   if [[ "$PUSH_CONFIRM" =~ ^[Yy]$ ]]; then
     git push "$UPSTREAM_NAME" "$BRANCH" --quiet
-    CURRENT_STEP=$((CURRENT_STEP + 1))
-    show_progress_bar $TOTAL_STEPS $CURRENT_STEP "Complete!"
+    if [ "$AUTO_CONFIRM" != true ]; then
+      CURRENT_STEP=$((CURRENT_STEP + 1))
+      show_progress_bar $TOTAL_STEPS $CURRENT_STEP "Complete!"
+      
+      # Complete progress bar and clear screen for celebration
+      show_progress_bar $TOTAL_STEPS $TOTAL_STEPS
+      clear_screen
+      echo ""
+      echo -e "${YELLOW}   \\ | /${NC}"
+      echo -e "${YELLOW}  -- ${BRIGHT_GREEN}@${NC}${YELLOW} --${NC}"
+      echo -e "${YELLOW}   / | \\${NC}"
+      echo -e "${GREEN}     |${NC}"
+      echo -e "${GREEN}     |${NC}"
+      echo -e "${BRIGHT_GREEN}   POWER${NC}"
+      echo -e "${BRIGHT_GREEN}    UP!${NC}"
+    fi
   fi
 
-  # Complete progress bar and clear screen for celebration
-  show_progress_bar $TOTAL_STEPS $TOTAL_STEPS
-  clear_screen
-  echo ""
-  echo -e "${YELLOW}   \\ | /${NC}"
-  echo -e "${YELLOW}  -- ${BRIGHT_GREEN}@${NC}${YELLOW} --${NC}"
-  echo -e "${YELLOW}   / | \\${NC}"
-  echo -e "${GREEN}     |${NC}"
-  echo -e "${GREEN}     |${NC}"
-  echo -e "${BRIGHT_GREEN}   POWER${NC}"
-  echo -e "${BRIGHT_GREEN}    UP!${NC}"
-
 else
-  flash_message "SKIP" "Commit cancelled"
+  if [ "$AUTO_CONFIRM" != true ]; then
+    print_status "SKIP" "Commit cancelled"
+  fi
 fi
