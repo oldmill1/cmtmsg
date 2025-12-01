@@ -151,7 +151,7 @@ Your output must include:
 - A one-line title: <type>[optional scope]: <description>
 - An optional short body (1–2 lines), no bullet points, no Markdown, no backticks
 
-After the commit message, add exactly one blank line, then provide a Lord of the Rings style summary starting with 'Summary as LOTR:'"
+After the commit message, add exactly one blank line, then provide a Lord of the Rings style summary starting with 'Summary as LOTR:'. The summary must be very short - just 1-2 lines maximum, like a brief quote from Middle-earth."
 
 USER_PROMPT="Generate a Conventional Commit message (title and short body only) for the following git diff:\n\n$DIFF_CONTENT"
 
@@ -185,7 +185,7 @@ STRIPPED_MSG=$(echo "$RAW_MSG" | sed '/^```/d' | sed '/^\s*$/d')
 
 # Separate commit message from LOTR summary
 COMMIT_MSG=$(echo "$STRIPPED_MSG" | sed '/^Summary as LOTR:/q' | sed '$d')
-LOTR_SUMMARY=$(echo "$STRIPPED_MSG" | grep "^Summary as LOTR:" || echo "")
+LOTR_SUMMARY=$(echo "$STRIPPED_MSG" | grep "^Summary as LOTR:" | sed 's/^Summary as LOTR: //' || echo "")
 
 if [ -z "$COMMIT_MSG" ]; then
   print_error "Failed to extract commit message from LLM response."
