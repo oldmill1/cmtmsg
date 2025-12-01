@@ -149,7 +149,9 @@ SYSTEM_PROMPT="You are a commit message generator. You strictly follow the Conve
 
 Your output must include:
 - A one-line title: <type>[optional scope]: <description>
-- An optional short body (1–2 lines), no bullet points, no Markdown, no backticks."
+- An optional short body (1–2 lines), no bullet points, no Markdown, no backticks
+
+After the commit message, add exactly one blank line, then provide a Lord of the Rings style summary starting with 'Summary as LOTR:'"
 
 USER_PROMPT="Generate a Conventional Commit message (title and short body only) for the following git diff:\n\n$DIFF_CONTENT"
 
@@ -177,11 +179,15 @@ RESPONSE=$(curl -s https://api.openai.com/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d "$REQUEST_JSON")
 
-# --- Extract commit message ---
+# --- Extract commit message and LOTR summary ---
 RAW_MSG=$(echo "$RESPONSE" | jq -r '.choices[0].message.content' 2>/dev/null)
 STRIPPED_MSG=$(echo "$RAW_MSG" | sed '/^```/d' | sed '/^\s*$/d')
 
-if [ -z "$STRIPPED_MSG" ]; then
+# Separate commit message from LOTR summary
+COMMIT_MSG=$(echo "$STRIPPED_MSG" | sed '/^Summary as LOTR:/q' | sed '$d')
+LOTR_SUMMARY=$(echo "$STRIPPED_MSG" | grep "^Summary as LOTR:" || echo "")
+
+if [ -z "$COMMIT_MSG" ]; then
   print_error "Failed to extract commit message from LLM response."
   echo "$RAW_MSG"
   exit 1
@@ -193,17 +199,26 @@ if [ "$AUTO_CONFIRM" != true ]; then
   show_progress_bar $TOTAL_STEPS $CURRENT_STEP "Processing output"
 fi
 
-# For --confirm flag, only show the commit message without any formatting
+# For --confirm flag, show the LOTR summary
 if [ "$AUTO_CONFIRM" = true ]; then
-  echo "$STRIPPED_MSG"
+  if [ ! -z "$LOTR_SUMMARY" ]; then
+    echo "$LOTR_SUMMARY"
+  else
+    echo "$COMMIT_MSG"
+  fi
 else
-  # Display each line of the message with simple indentation for non-confirm mode
+  # Display each line of the commit message with simple indentation for non-confirm mode
   while IFS= read -r line; do
     if [ ! -z "$line" ]; then
       echo -e "  ${BRIGHT_GREEN}$line${NC}"
     fi
-  done <<< "$STRIPPED_MSG"
+  done <<< "$COMMIT_MSG"
   echo ""
+  # Also show LOTR summary if available
+  if [ ! -z "$LOTR_SUMMARY" ]; then
+    echo -e "  ${YELLOW}$LOTR_SUMMARY${NC}"
+    echo ""
+  fi
 fi
 
 # --- Confirm commit ---
@@ -218,7 +233,7 @@ fi
 
 if [[ "$CONFIRM" =~ ^[Yy]$ ]]; then
   git add . 2>/dev/null
-  git commit -m "$STRIPPED_MSG" --quiet
+  git commit -m "$COMMIT_MSG" --quiet
   BRANCH=$(git rev-parse --abbrev-ref HEAD)
   if [ "$AUTO_CONFIRM" != true ]; then
     CURRENT_STEP=$((CURRENT_STEP + 1))
